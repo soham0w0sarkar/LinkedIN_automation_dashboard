@@ -32,20 +32,41 @@ const CampaignDashboard = ({ campaign }) => {
     useCrashReports();
   const { downloads } = useDownloads();
 
-  const handleAssignmentSave = (assignments) => {
-    Object.entries(assignments).forEach(async ([botId, targetIndices]) => {
+
+  const handleAssignmentSave = async (assignments) => {
+    try {
+      for (const [botId, targetIndices] of Object.entries(assignments)) {
+        await updateDoc(
+          doc(db, "Campaigns", campaign.id, "bot_accounts", botId),
+          {
+            Profiles: targetIndices.map((i) => ({
+              name: targetList[i].name,
+              email: targetList[i].email,
+              link: targetList[i].link,
+              headline: targetList[i].headline,
+            })),
+          }
+        );
+      }
+
+      setTargetList((prev) =>
+        prev.filter((_, i) => !Object.values(assignments).flat().includes(i))
+      );
+
       await updateDoc(
-        doc(db, "Campaigns", campaign.id, "bot_accounts", botId),
+        doc(db, "Campaigns", campaign.id, "target_list", "setDocumentId"),
         {
-          assignedTargets: targetIndices.map((index) => ({
-            name: targetList[index].name,
-            email: targetList[index].email,
-            link: targetList[index].link,
-          })),
+          links: targetList.filter(
+            (_, i) => !Object.values(assignments).flat().includes(i)
+          ),
+          process: true,
         }
       );
-    });
-    setShowAssignModal(false);
+    } catch (error) {
+      console.error("Error updating assignments:", error);
+    } finally {
+      setShowAssignModal(false);
+    }
   };
 
   const renderActiveSection = () => {

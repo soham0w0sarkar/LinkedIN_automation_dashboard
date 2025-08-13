@@ -1,4 +1,59 @@
-<svg width="32" height="32" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
-  <rect width="60" height="60" rx="12" fill="#0A66C2"/>
-  <text x="16" y="42" font-size="36" font-family="Arial, sans-serif" font-weight="bold" fill="white">L</text>
+<!-- favicon.svg — modern chat-bot badge for LinkedIn automation -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Automation badge">
+  <title>Automation Badge</title>
+  <desc>Rounded badge with chat bubble and robot eye — modern automation favicon</desc>
+
+  <!-- background rounded square with gradient -->
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f62fe"/>
+      <stop offset="1" stop-color="#6c63ff"/>
+    </linearGradient>
+
+    <!-- subtle inner shadow -->
+    <filter id="f1" x="-50%" y="-50%" width="200%" height="200%">
+      <feOffset dx="0" dy="1" in="SourceAlpha" result="o"/>
+      <feGaussianBlur in="o" stdDeviation="1.2" result="b"/>
+      <feComposite in="b" in2="SourceAlpha" operator="out" result="sh"/>
+      <feColorMatrix in="sh" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.25 0" />
+      <feBlend in="SourceGraphic" in2="sh" mode="normal"/>
+    </filter>
+
+    <!-- tiny highlight -->
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.03"/>
+    </linearGradient>
+  </defs>
+
+  <!-- base rounded square -->
+  <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#g1)" filter="url(#f1)"/>
+
+  <!-- highlight overlay -->
+  <rect x="6" y="4" width="44" height="22" rx="10" fill="url(#g2)" opacity="0.9"/>
+
+  <!-- white chat bubble -->
+  <g transform="translate(9,11)">
+    <path d="M7.5 8.5c0-3.037 2.463-5.5 5.5-5.5h18c3.037 0 5.5 2.463 5.5 5.5v7c0 3.037-2.463 5.5-5.5 5.5H20l-6 4V21c-3.037 0-5.5-2.463-5.5-5.5v-7z"
+          fill="#ffffff" opacity="0.97" />
+  </g>
+
+  <!-- robot-eye (circle) centered inside chat bubble -->
+  <g transform="translate(9,11)">
+    <circle cx="24.5" cy="10" r="4.4" fill="#0f62fe"/>
+    <circle cx="23.4" cy="9" r="1.1" fill="#ffffff" opacity="0.95"/>
+  </g>
+
+  <!-- small 'circuit' nodes to suggest automation -->
+  <g transform="translate(9,11)" fill="#e6e6ff" opacity="0.95">
+    <circle cx="12" cy="6" r="1.2"/>
+    <circle cx="6.5" cy="13" r="1.2"/>
+    <circle cx="33.8" cy="16" r="1.2"/>
+    <path d="M12 6 L18 8" stroke="#d9d9ff" stroke-width="0.8" stroke-linecap="round" />
+    <path d="M7 13 L12 11" stroke="#d9d9ff" stroke-width="0.8" stroke-linecap="round" />
+  </g>
+
+  <!-- thin outer ring for crisp small-size rendering -->
+  <rect x="2.5" y="2.5" width="59" height="59" rx="11.5" ry="11.5" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+
 </svg>

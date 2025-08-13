@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 
 export const useFileUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [hideUploadedFiles, setUploadedHideUploadedFiles] = useState(false);
 
   const handleFileUpload = (files, section) => {
     const newFiles = Array.from(files).map((file) => ({
@@ -29,19 +38,43 @@ export const useFileUpload = () => {
       const filteredRows = rows.filter(
         (row) => row.name && row.email && row.link
       );
+      let prevLinks = [];
 
-      const uniqueDocId = Date.now().toString();
+      try {
+        const targetRef = await getDoc(
+          doc(db, "Campaigns", campaignId, "target_list", "setDocumentId")
+        );
 
-      await setDoc(
-        doc(db, "Campaigns", campaignId, "target_list", uniqueDocId),
-        {
-          links: filteredRows,
-          createdAt: new Date().toISOString(),
+        if (!targetRef.exists()) {
+          await setDoc(
+            doc(db, "Campaigns", campaignId, "target_list", "setDocumentId"),
+            {
+              links: filteredRows,
+              createdAt: serverTimestamp(),
+            }
+          );
+        } else {
+          const targets = targetRef.data();
+          prevLinks = targets.links;
+
+          await updateDoc(
+            doc(db, "Campaigns", campaignId, "target_list", "setDocumentId"),
+            {
+              links: [...targets.links, ...filteredRows],
+              createdAt: serverTimestamp(),
+            }
+          );
         }
-      );
 
-      console.log("Target list uploaded under doc:", uniqueDocId);
-      return filteredRows;
+        await updateDoc(doc(db, "Campaigns", campaignId), {
+          target_count: filteredRows.length + prevLinks.length,
+        });
+
+        return [...filteredRows, ...prevLinks];
+      } catch (error) {
+        console.error("Error in update Target List :", error);
+        return [];
+      }
     };
 
     if (ext === "csv" || ext === "txt") {
@@ -75,19 +108,36 @@ export const useFileUpload = () => {
     let bots = [];
 
     const processRows = async (rows) => {
-      for (const row of rows) {
-        const { email, password, name, user_agent } = row;
-        if (email && password) {
-          const docId = `${email}_${password}`;
-          const botData = { email, password, name, user_agent };
+      try {
+        const botSnap = await getDocs(
+          collection(db, "Campaigns", campaignId, "bot_accounts")
+        );
 
-          await setDoc(
-            doc(db, "Campaigns", campaignId, "bot_accounts", docId),
-            botData
-          );
+        botSnap.forEach((doc) => {
+          bots.push({ id: doc.id, ...doc.data() });
+        });
 
-          bots.push({ id: docId, ...botData });
+        for (const row of rows) {
+          const { email, password, name, user_agent } = row;
+
+          if (email && password) {
+            const docId = `${email}_${password}`;
+            const botData = { email, password, name, user_agent };
+
+            await setDoc(
+              doc(db, "Campaigns", campaignId, "bot_accounts", docId),
+              botData
+            );
+
+            bots.push({ id: docId, ...botData });
+          }
+
+          await updateDoc(doc(db, "Campaigns", campaignId), {
+            bot_count: bots.length,
+          });
         }
+      } catch (error) {
+        console.error("Error in uploading bot list: ", error);
       }
     };
 
@@ -121,5 +171,6 @@ export const useFileUpload = () => {
     handleBotListUpload,
     handleTargetListUpload,
     removeFile,
+    hideUploadedFiles,
   };
 };
